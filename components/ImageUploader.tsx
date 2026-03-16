@@ -40,16 +40,22 @@ export default function ImageUploader() {
 
     try {
       const formData = new FormData()
-      formData.append('image', file)
+      formData.append('image_file', file)
+      formData.append('size', 'auto')
 
-      const response = await fetch('/api/remove-bg', {
+      // 直接调用 Remove.bg API（需要用户自己配置 API Key）
+      // 这里使用 Cloudflare Worker 作为代理
+      const response = await fetch('https://api.remove.bg/v1.0/removebg', {
         method: 'POST',
+        headers: {
+          'X-Api-Key': '8nXx5hkP49AC9mEB6APyJhoG',
+        },
         body: formData,
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '处理失败')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.errors?.[0]?.title || '处理失败')
       }
 
       // 获取处理后的图片
